@@ -5,6 +5,7 @@
   // Target location for AR entity
   const targetLat = 18.5344;
   const targetLon = 73.883;
+  const visibilityThreshold = 10; // meters
 
   function updateLocationUI(lat, lon, distance = null) {
     let msg = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
@@ -33,13 +34,16 @@
   function handlePosition(pos) {
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
-
     const distance = calculateDistance(lat, lon, targetLat, targetLon);
 
-    // Optionally update AR entity to user's position (for testing only)
-    // if (welcomeText) {
-    //   welcomeText.setAttribute("gps-entity-place", `latitude: ${lat}; longitude: ${lon};`);
-    // }
+    // Show/hide AR entity based on proximity
+    if (welcomeText) {
+      if (distance <= visibilityThreshold) {
+        welcomeText.setAttribute("visible", "true");
+      } else {
+        welcomeText.setAttribute("visible", "false");
+      }
+    }
 
     updateLocationUI(lat, lon, distance);
   }
@@ -55,7 +59,12 @@
     if (locInfo) locInfo.innerText = msg;
   }
 
+  // Hide the AR entity initially
+  if (welcomeText) {
+    welcomeText.setAttribute("visible", "false");
+  }
 
+  // Start tracking user's location
   if ("geolocation" in navigator) {
     navigator.geolocation.watchPosition(handlePosition, handleError, {
       enableHighAccuracy: true,

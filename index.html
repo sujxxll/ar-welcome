@@ -66,7 +66,7 @@
       embedded
       arjs="sourceType: webcam; gpsMinAccuracy: 100; gpsTimeInterval: 1000;"
     >
-      <!-- Dinosaur Model -->
+      <!-- Dinosaur Model at new coordinates -->
       <a-gltf-model 
         id="dino"
         src="https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Trex/glTF-Binary/Trex.glb"
@@ -81,7 +81,7 @@
       <a-camera gps-camera rotation-reader></a-camera>
     </a-scene>
 
-    <!-- JavaScript -->
+    <!-- JS to handle location + visibility -->
     <script>
       const latSpan = document.getElementById("lat");
       const lonSpan = document.getElementById("lon");
@@ -89,9 +89,10 @@
       const locInfo = document.getElementById("location-info");
       const dinoModel = document.getElementById("dino");
 
+      // Updated target coordinates
       const targetLat = 18.595234;
       const targetLon = 73.726098;
-      const visibilityThreshold = 100; // meters
+      const visibilityThreshold = 100; // in meters
 
       function updateLocationUI(lat, lon, distance = null) {
         latSpan.innerText = lat.toFixed(6);

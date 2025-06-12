@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>AR Welcome with Location</title>
+
+    <!-- A-Frame and AR.js -->
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.4.2/aframe/build/aframe-ar-nft.js"></script>
+
+    <style>
+      body, html {
+        margin: 0;
+        overflow: hidden;
+        font-family: sans-serif;
+      }
+
+      #infoBox {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        padding: 10px 15px;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        font-size: 16px;
+        border-radius: 8px;
+        z-index: 999;
+        max-width: 90%;
+      }
+
+      #infoBox span {
+        font-weight: bold;
+        color: #00ffff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- UI Box to show current location -->
+    <div id="infoBox">
+      📍 Your Location:<br />
+      Lat: <span id="lat">Loading...</span><br />
+      Lon: <span id="lon">Loading...</span>
+    </div>
+
+    <!-- A-Frame Scene -->
+    <a-scene
+      vr-mode-ui="enabled: false"
+      embedded
+      arjs="sourceType: webcam; gpsMinAccuracy: 100; gpsTimeInterval: 1000;"
+    >
+      <!-- AR Text Object -->
+      <a-entity 
+        gps-entity-place="latitude: 18.595123; longitude: 73.726036;"
+        text="value: Welcome!; color: red; align: center"
+        scale="20 20 20"
+        position="0 0 0">
+      </a-entity>
+
+
+
+      <!-- AR Camera -->
+      <a-camera gps-camera rotation-reader></a-camera>
+    </a-scene>
+
+    <!-- JS to update GPS location dynamically -->
+    <script>
+      const latSpan = document.getElementById("lat");
+      const lonSpan = document.getElementById("lon");
+      const welcomeText = document.getElementById("welcomeText");
+
+      function updateLocation(lat, lon) {
+        latSpan.innerText = lat.toFixed(6);
+        lonSpan.innerText = lon.toFixed(6);
+        welcomeText.setAttribute("gps-entity-place", `latitude: ${lat}; longitude: ${lon};`);
+      }
+
+      function handleError(err) {
+        latSpan.innerText = "Error";
+        lonSpan.innerText = "Error";
+        console.error("Geolocation error:", err.message);
+      }
+
+      // Initial fetch
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            updateLocation(lat, lon);
+          },
+          handleError,
+          { enableHighAccuracy: true }
+        );
+
+        // Live update every second
+        setInterval(() => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const lat = pos.coords.latitude;
+              const lon = pos.coords.longitude;
+              updateLocation(lat, lon);
+            },
+            handleError,
+            { enableHighAccuracy: true }
+          );
+        }, 1000);
+      } else {
+        handleError({ message: "Geolocation not supported" });
+      }
+    </script>
+  </body>
+</html>

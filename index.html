@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>AR Welcome with Location</title>
+    <title>AR Dinosaur with Location</title>
 
     <!-- A-Frame and AR.js -->
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
@@ -45,36 +45,19 @@
         z-index: 1000;
         display: none;
       }
-
-      #enableBtn {
-        position: absolute;
-        top: 120px;
-        left: 10px;
-        z-index: 1001;
-        padding: 8px 12px;
-        background: #00aa00;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 14px;
-        cursor: pointer;
-      }
     </style>
   </head>
 
   <body>
     <!-- UI Box -->
     <div id="infoBox">
-      <div id="location-info">📍 Getting location...</div>  
+      <div id="location-info">📍 Getting location...</div>
       📍 Your Location:<br />
       Lat: <span id="lat">Loading...</span><br />
       Lon: <span id="lon">Loading...</span>
     </div>
 
-    <!-- Enable Button -->
-    <button id="enableBtn">Enable Location</button>
-
-    <!-- Error Box -->
+    <!-- Status Box -->
     <div id="statusBox"></div>
 
     <!-- A-Frame Scene -->
@@ -83,29 +66,66 @@
       embedded
       arjs="sourceType: webcam; gpsMinAccuracy: 100; gpsTimeInterval: 1000;"
     >
-      <a-entity 
-        id="welcome-text"
+      <!-- Dinosaur Model -->
+      <a-gltf-model 
+        id="dino"
+        src="https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Trex/glTF-Binary/Trex.glb"
         gps-entity-place="latitude: 18.59523; longitude: 73.72612;"
-        text="value: Welcome!; color: red; align: center"
-        scale="20 20 20"
-        position="0 0 0">
-      </a-entity>
+        scale="5 5 5"
+        rotation="0 180 0"
+        animation-mixer
+        visible="false">
+      </a-gltf-model>
 
+      <!-- AR Camera -->
       <a-camera gps-camera rotation-reader></a-camera>
     </a-scene>
 
-    <!-- Location Script -->
+    <!-- JS to handle location + visibility -->
     <script>
       const latSpan = document.getElementById("lat");
       const lonSpan = document.getElementById("lon");
       const statusBox = document.getElementById("statusBox");
-      const enableBtn = document.getElementById("enableBtn");
-      const locationInfo = document.getElementById("location-info");
+      const locInfo = document.getElementById("location-info");
+      const dinoModel = document.getElementById("dino");
 
-      function updateLocationUI(lat, lon) {
+      const targetLat = 18.59523;
+      const targetLon = 73.72612;
+      const visibilityThreshold = 100; // in meters
+
+      function updateLocationUI(lat, lon, distance = null) {
         latSpan.innerText = lat.toFixed(6);
         lonSpan.innerText = lon.toFixed(6);
-        locationInfo.innerText = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
+        let msg = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
+        if (distance !== null) {
+          msg += `\n📏 Distance to Dino: ${distance.toFixed(1)} m`;
+        }
+        locInfo.innerText = msg;
+      }
+
+      function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3;
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+        const a = Math.sin(Δφ / 2) ** 2 +
+                  Math.cos(φ1) * Math.cos(φ2) *
+                  Math.sin(Δλ / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      }
+
+      function handlePosition(pos) {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const distance = calculateDistance(lat, lon, targetLat, targetLon);
+        updateLocationUI(lat, lon, distance);
+
+        if (dinoModel) {
+          dinoModel.setAttribute("visible", distance < visibilityThreshold);
+        }
       }
 
       function handleError(err) {
@@ -116,32 +136,15 @@
         console.error("Geolocation error:", err.message);
       }
 
-      function getLocation() {
-        if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              updateLocationUI(pos.coords.latitude, pos.coords.longitude);
-              // Start updates
-              setInterval(() => {
-                navigator.geolocation.getCurrentPosition(
-                  (pos) => updateLocationUI(pos.coords.latitude, pos.coords.longitude),
-                  handleError,
-                  { enableHighAccuracy: true }
-                );
-              }, 3000);
-            },
-            handleError,
-            { enableHighAccuracy: true }
-          );
-        } else {
-          handleError({ message: "Geolocation not supported" });
-        }
+      if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition(handlePosition, handleError, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
+      } else {
+        handleError({ message: "Geolocation not supported" });
       }
-
-      enableBtn.addEventListener("click", () => {
-        getLocation();
-        enableBtn.style.display = "none";
-      });
     </script>
   </body>
 </html>

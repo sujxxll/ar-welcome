@@ -1,24 +1,25 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>AR.js Marker Dino</title>
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://cdn.rawgit.com/AR-js-org/AR.js/3.4.2/aframe/build/aframe-ar.min.js"></script>
-    <style>
-      body, html { margin: 0; overflow: hidden; }
-    </style>
-  </head>
-  <body>
-    <a-scene embedded arjs>
-      <a-marker type="pattern" url="pattern-marker.patt">
-        <a-gltf-model
-          src="https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Trex/glTF-Binary/Trex.glb"
-          scale="0.05 0.05 0.05"
+<head>
+  <meta charset="utf-8">
+  <title>AR Dino on Clipboard Marker</title>
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <script src="https://cdn.rawgit.com/AR-js-org/AR.js/3.4.2/aframe/build/aframe-ar.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <a-scene embedded vr-mode-ui="enabled: false" arjs="sourceType: webcam; patternRatio: 0.5;">
+    <a-marker type="pattern" url="data:application/octet-stream;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAAAXNSR0IArs4c6QAAIABJREFUeF7tnQnQHWW5558+X/adJGQPZIGbEG6YsMoaAoIQQAUGFRDZkbk1TpUzlnO9ljXOteZa3Ft3qu7cuuOMiLIoyKayqIjsQmRJYkJYwo6YkI3s+/Z9PfP0x5cK+H3ndJ/Tffr/en5dlQKlu9+nf/+G/p33ffvtKI7j2NggAAEIQAACEGgpAhEC0FJ5c7EQgAAEIACBhAACwI0AAQhAAAIQaEECCEALhs4lQwACEIAABBAA7gEIQAACEIBACxJAAFowdC4ZAhCAAAQggABwD0AAAhCAAARakAAC0IKhc8kQgAAEIAABBIB7AAIQgAAEINCCBBCAFgydS4YABCAAAQggANwDEIAABCAAgRYkgAC0YOhcMgQgAAEIQAAB4B6AAAQgAAEItCABBKAFQ+eSIQABCEAAAggA9wAEIAABCECgBQkgAC0YOpcMAQhAAAIQQAC4ByAAAQhAAAItSAABaMHQuWQIQAACEIAAAsA9AAEIQAACEGhBAghAC4bOJUMAAhCAAAQQAO4BCEAAAhCAQAsSQABaMHQuGQIQgAAEIIAAcA9AAAIQgAAEWpAAAtCCoXPJEIAABCAAAQSAewACEIAABCDQggQQgBYMnUuGAAQgAAEIIADcAxCAAAQgAIEWJIAAtGDoXDIEIAABCEAAAeAegAAEIAABCLQgAQSgBUPnkiEAAQhAAAIIAPcABCAAAQhAoAUJIAAtGDqXDAEIQAACEEAAuAcgAAEIQAACLUgAAWjB0LlkCEAAAhCAAALAPQABCEAAAhBoQQIIQAuGziVDAAIQgAAEEADuAQhAAAIQgEALEkAAWjB0LhkCEIAABCCAAHAPQAACEIAABFqQAALQgqFzyRCAAAQgAAEEgHsAAhCAAAQg0IIEEIAWDJ1LhgAEIAABCCAA3AMQgAAEIACBFiSAALRg6FwyBCAAAQhAAAHgHoAABCAAAQi0IAEEoAVD55IhAAEIQAACCAD3AAQgAAEIQKAFCSAALRg6lwwBCEAAAhBAALgHIAABCEAAAi1IAAFowdC5ZAhAAAIQgAACwD0AAQhAAAIQaEECf1ECcMwxx7RghFwyBCAAAQg0i8CCBQua1VTh7fzFCcDChQsLh0YDEIAABCDQegSOPvpoQwBEc/ceAARANBzKggAEIBA4AQRAOEAEQDgcSoMABCAQOAEEQDhABEA4HEqDAAQgEDgBBEA4QARAOBxKgwAEIBA4AQRAOEAEQDgcSoMABCAQOAEEQDhABEA4HEqDAAQgEDgBBEA4QARAOBxKgwAEIBA4AQRAOEAEQDgcSoMABCAQOAEEQDhABEA4HEqDAAQgEDgBBEA4QARAOBxKgwAEIBA4AQRAOEAEQDgcSoMABCAQOAEEQDhABEA4HEqDAAQgEDgBBEA4QARAOBxKgwAEIBA4AQRAOEAEQDgcSoMABCAQOAEEQDhABEA4HEqDAAQgEDgBBEA4QARAOBxKgwAEIBA4AQRAOEAEQDgcSoMABCAQOAEEQDhABEA4HEqDAAQgEDgBBEA4QARAOBxKgwAEIBA4AQRAOEAEQDgcSoMABCAQOAEEQDhABEA4HEqDAAQgEDgBBEA4QARAOBxKgwAEIBA4AQRAOEAEQDgcSoMABCAQOAEEQDhABEA4HEqDAAQgEDgBBEA4QARAOBxKgwAEIBA4AQRAOEAEQDgcSoMABCAQOAEEQDhABEA4HEqDAAQgEDgBBEAR"}, alt="">
+        <a-gltf-model src="https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Trex/glTF-Binary/Trex.glb"
+          scale="0.5 0.5 0.5"
           rotation="0 180 0"
-          position="0 0 0">
+          animation-mixer>
         </a-gltf-model>
       </a-marker>
+
       <a-entity camera></a-entity>
     </a-scene>
-  </body>
+</body>
 </html>

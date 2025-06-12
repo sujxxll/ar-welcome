@@ -82,6 +82,13 @@
             padding-top: 2px;
         }
 
+        .status-message {
+            margin-top: 1.5rem;
+            color: #fca5a5; /* Red-300 for error messages */
+            font-weight: bold;
+            display: none; /* Hidden by default */
+        }
+
         .start-button {
             background-color: #63b3ed; /* Blue-500 */
             color: #ffffff;
@@ -131,32 +138,53 @@
     <script src="https://raw.githack.com/AR-js-tools/AR.js/master/aframe/build/aframe-ar.js"></script>
 
     <script>
+        let arCameraInitialized = false; // Flag to track if AR.js camera has initialized
+
         // JavaScript to manage the overlay message and start AR
         document.addEventListener('DOMContentLoaded', () => {
             const overlay = document.getElementById('ar-overlay');
             const startButton = document.getElementById('start-ar-button');
+            const statusMessage = document.getElementById('status-message');
 
             // Hide the overlay and start AR when the button is clicked
             startButton.addEventListener('click', () => {
                 overlay.style.display = 'none';
                 // AR.js will automatically try to start the camera
                 // and detect markers once the scene is visible.
+
+                // Set a timeout to check if the camera initialized
+                // This helps in providing feedback if permissions are denied or HTTPS is not used
+                setTimeout(() => {
+                    if (!arCameraInitialized) {
+                        statusMessage.textContent = "Camera not initialized. Please ensure the page is served over HTTPS and you have granted camera permissions.";
+                        statusMessage.style.display = 'block'; // Show the message
+                        overlay.style.display = 'flex'; // Re-show overlay to display message
+                    }
+                }, 5000); // Check after 5 seconds
             });
         });
 
         // Event listener for when AR.js initialization is complete and camera access is granted.
-        // This is useful for debugging or adding elements that depend on AR.js being ready.
         window.addEventListener('arjs-original-camera-init', function () {
             console.log("AR.js camera initialized!");
-            // You could add logic here to hide the overlay automatically if AR.js starts
-            // without user interaction, but a button is better for explicit permission.
+            arCameraInitialized = true; // Set flag to true
+            const statusMessage = document.getElementById('status-message');
+            if (statusMessage) {
+                statusMessage.style.display = 'none'; // Hide any previous error messages
+            }
         });
 
         // Handle potential errors (e.g., camera not found, permissions denied)
+        // This catches generic errors. More specific AR.js errors might be handled by arjs-original-camera-init
         window.addEventListener('error', function(e) {
             console.error("An error occurred:", e);
-            // In a real application, you'd show a user-friendly error message here
-            // in the overlay.
+            const statusMessage = document.getElementById('status-message');
+            if (statusMessage) {
+                statusMessage.textContent = `An error occurred: ${e.message || 'Unknown error. Check console for details.'}`;
+                statusMessage.style.display = 'block';
+                const overlay = document.getElementById('ar-overlay');
+                overlay.style.display = 'flex'; // Re-show overlay to display message
+            }
         });
     </script>
 </head>
@@ -168,16 +196,19 @@
             <p class="text-lg mb-6">Get ready to see a dinosaur in your world!</p>
             <ul class="instructions-list text-left text-base leading-relaxed">
                 <li>
-                    <p class="mb-0"><strong>Generate Custom Marker:</strong> The marker image you referenced (`ar-welcome/pattern-marker.png`) needs to be converted into a `.patt` file.</p>
-                </li>
-                <li>
-                    <p class="mb-0"><strong>Convert & Host:</strong> Search for "AR.js marker generator" online, upload your image (`https://raw.githubusercontent.com/sujxxll/ar-welcome/main/ar-welcome/pattern-marker.png`), download the `.patt` file, and then host it somewhere publicly accessible online (e.g., GitHub Pages).</p>
-                </li>
-                <li>
-                    <p class="mb-0"><strong>Update Code:</strong> Replace the placeholder URL in the `<a-marker>` tag in this code with the actual URL to your hosted `.patt` file.</p>
+                    <p class="mb-0"><strong>IMPORTANT: Serve via HTTPS:</strong> For camera access to work, this page MUST be served over HTTPS (e.g., `https://localhost:8000` or a deployed website). Directly opening `file://` might block camera access.</p>
                 </li>
                 <li>
                     <p class="mb-0"><strong>Allow Camera Access:</strong> Your browser will ask for camera permission. Please allow it.</p>
+                </li>
+                <li>
+                    <p class="mb-0"><strong>Generate Custom Marker:</strong> The marker image you referenced (`https://raw.githubusercontent.com/sujxxll/ar-welcome/main/pattern-maker.png`) needs to be converted into a `.patt` file.</p>
+                </li>
+                <li>
+                    <p class="mb-0"><strong>Convert & Host:</strong> Search for "AR.js marker generator" online, upload your image, download the `.patt` file, and then host it somewhere publicly accessible online (e.g., GitHub Pages).</p>
+                </li>
+                <li>
+                    <p class="mb-0"><strong>Update Code:</strong> **Replace** the placeholder URL in the `&lt;a-marker&gt;` tag in this code with the actual URL to your hosted `.patt` file.</p>
                 </li>
                 <li>
                     <p class="mb-0"><strong>Point Camera:</strong> Point your device's camera at your printed custom marker.</p>
@@ -186,6 +217,7 @@
                     <p class="mb-0"><strong>Watch the Magic:</strong> A dinosaur model will appear on the marker!</p>
                 </li>
             </ul>
+            <p id="status-message" class="status-message"></p> <!-- Dynamic status message for camera issues -->
             <button id="start-ar-button" class="start-button mt-8">Start AR</button>
         </div>
     </div>
@@ -200,7 +232,8 @@
 
         <!-- AR Marker: This defines the marker that AR.js will look for. -->
         <!-- IMPORTANT: AR.js requires a .patt file, not a .png image directly. -->
-        <!-- Use an online AR.js marker generator to convert your image (ar-welcome/pattern-marker.png) -->
+        <!-- Use an online AR.js marker generator to convert your image (like the one you provided: -->
+        <!-- https://raw.githubusercontent.com/sujxxll/ar-welcome/main/pattern-maker.png) -->
         <!-- into a .patt file. Then, host that .patt file online and provide its URL below. -->
         <a-marker type="pattern" url="YOUR_HOSTED_PATTERN_MARKER_URL_GOES_HERE.patt">
             <!-- This is where your 3D dinosaur model will go. -->

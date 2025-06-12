@@ -1,6 +1,5 @@
 <script>
   const locInfo = document.getElementById("location-info");
-  const welcomeText = document.getElementById("welcome-text");
 
   function updateLocationUI(lat, lon) {
     locInfo.innerText = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
@@ -10,11 +9,7 @@
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
 
-    // Update AR object position
-    if (welcomeText) {
-      welcomeText.setAttribute("gps-entity-place", `latitude: ${lat}; longitude: ${lon};`);
-    }
-
+    // Only update the UI, not the AR text entity
     updateLocationUI(lat, lon);
   }
 
@@ -36,7 +31,7 @@
     }
   }
 
-  // Start watching the position for real-time updates
+  // Start watching the position for UI updates only
   if ("geolocation" in navigator) {
     navigator.geolocation.watchPosition(handlePosition, handleError, {
       enableHighAccuracy: true,

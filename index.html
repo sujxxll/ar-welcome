@@ -45,19 +45,36 @@
         z-index: 1000;
         display: none;
       }
+
+      #enableBtn {
+        position: absolute;
+        top: 120px;
+        left: 10px;
+        z-index: 1001;
+        padding: 8px 12px;
+        background: #00aa00;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+      }
     </style>
   </head>
 
   <body>
-    <!-- UI Box to show current location -->
+    <!-- UI Box -->
     <div id="infoBox">
-    <div id="location-info">📍 Getting location...</div>  
+      <div id="location-info">📍 Getting location...</div>  
       📍 Your Location:<br />
       Lat: <span id="lat">Loading...</span><br />
       Lon: <span id="lon">Loading...</span>
     </div>
 
-    <!-- Status box for error messages -->
+    <!-- Enable Button -->
+    <button id="enableBtn">Enable Location</button>
+
+    <!-- Error Box -->
     <div id="statusBox"></div>
 
     <!-- A-Frame Scene -->
@@ -66,7 +83,6 @@
       embedded
       arjs="sourceType: webcam; gpsMinAccuracy: 100; gpsTimeInterval: 1000;"
     >
-      <!-- AR Text Object at fixed coordinates -->
       <a-entity 
         id="welcome-text"
         gps-entity-place="latitude: 18.59523; longitude: 73.72612;"
@@ -75,19 +91,21 @@
         position="0 0 0">
       </a-entity>
 
-      <!-- AR Camera -->
       <a-camera gps-camera rotation-reader></a-camera>
     </a-scene>
 
-    <!-- JS to display device's GPS in UI only (no dynamic entity movement) -->
+    <!-- Location Script -->
     <script>
       const latSpan = document.getElementById("lat");
       const lonSpan = document.getElementById("lon");
       const statusBox = document.getElementById("statusBox");
+      const enableBtn = document.getElementById("enableBtn");
+      const locationInfo = document.getElementById("location-info");
 
       function updateLocationUI(lat, lon) {
         latSpan.innerText = lat.toFixed(6);
         lonSpan.innerText = lon.toFixed(6);
+        locationInfo.innerText = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
       }
 
       function handleError(err) {
@@ -98,28 +116,32 @@
         console.error("Geolocation error:", err.message);
       }
 
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            updateLocationUI(pos.coords.latitude, pos.coords.longitude);
-          },
-          handleError,
-          { enableHighAccuracy: true }
-        );
-
-        // Optional: keep updating coordinates in the info box
-        setInterval(() => {
+      function getLocation() {
+        if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
             (pos) => {
               updateLocationUI(pos.coords.latitude, pos.coords.longitude);
+              // Start updates
+              setInterval(() => {
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => updateLocationUI(pos.coords.latitude, pos.coords.longitude),
+                  handleError,
+                  { enableHighAccuracy: true }
+                );
+              }, 3000);
             },
             handleError,
             { enableHighAccuracy: true }
           );
-        }, 3000);
-      } else {
-        handleError({ message: "Geolocation not supported" });
+        } else {
+          handleError({ message: "Geolocation not supported" });
+        }
       }
+
+      enableBtn.addEventListener("click", () => {
+        getLocation();
+        enableBtn.style.display = "none";
+      });
     </script>
   </body>
 </html>

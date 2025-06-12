@@ -70,7 +70,7 @@
       <a-gltf-model 
         id="dino"
         src="https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Trex/glTF-Binary/Trex.glb"
-        gps-entity-place="latitude: 18.59523; longitude: 73.72612;"
+        gps-entity-place="latitude: 18.595234; longitude: 73.726098;"
         scale="5 5 5"
         rotation="0 180 0"
         animation-mixer
@@ -81,7 +81,7 @@
       <a-camera gps-camera rotation-reader></a-camera>
     </a-scene>
 
-    <!-- JS to handle location + visibility -->
+    <!-- JavaScript -->
     <script>
       const latSpan = document.getElementById("lat");
       const lonSpan = document.getElementById("lon");
@@ -89,9 +89,9 @@
       const locInfo = document.getElementById("location-info");
       const dinoModel = document.getElementById("dino");
 
-      const targetLat = 18.59523;
-      const targetLon = 73.72612;
-      const visibilityThreshold = 100; // in meters
+      const targetLat = 18.595234;
+      const targetLon = 73.726098;
+      const visibilityThreshold = 100; // meters
 
       function updateLocationUI(lat, lon, distance = null) {
         latSpan.innerText = lat.toFixed(6);

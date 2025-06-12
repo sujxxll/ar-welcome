@@ -2,9 +2,9 @@
   const locInfo = document.getElementById("location-info");
   const dinoModel = document.getElementById("dino");
 
-  // Target location for AR entity
-  const targetLat = 18.5344;
-  const targetLon = 73.883;
+  // ✅ Updated Target Location for the Dinosaur Model
+  const targetLat = 18.595234;
+  const targetLon = 73.726098;
   const visibilityThreshold = 10; // meters
 
   function updateLocationUI(lat, lon, distance = null) {
@@ -15,7 +15,6 @@
     if (locInfo) locInfo.innerText = msg;
   }
 
-  // Haversine formula to calculate distance in meters
   function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371e3;
     const φ1 = lat1 * Math.PI / 180;
@@ -36,7 +35,7 @@
     const lon = pos.coords.longitude;
     const distance = calculateDistance(lat, lon, targetLat, targetLon);
 
-    // Show/hide the dinosaur model based on proximity
+    // Show/hide dinosaur based on distance
     if (dinoModel) {
       dinoModel.setAttribute("visible", distance <= visibilityThreshold);
     }
@@ -55,12 +54,10 @@
     if (locInfo) locInfo.innerText = msg;
   }
 
-  // Hide the dinosaur initially
   if (dinoModel) {
     dinoModel.setAttribute("visible", "false");
   }
 
-  // Start location tracking
   if ("geolocation" in navigator) {
     navigator.geolocation.watchPosition(handlePosition, handleError, {
       enableHighAccuracy: true,

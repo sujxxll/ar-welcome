@@ -65,10 +65,10 @@
       embedded
       arjs="sourceType: webcam; gpsMinAccuracy: 100; gpsTimeInterval: 1000;"
     >
-      <!-- AR Text Object -->
+      <!-- AR Text Object at fixed coordinates -->
       <a-entity 
         id="welcomeText"
-        gps-entity-place="latitude: 18.595123; longitude: 73.726036;"
+        gps-entity-place="latitude: 18.59523; longitude: 73.72612;"
         text="value: Welcome!; color: red; align: center"
         scale="20 20 20"
         position="0 0 0">
@@ -78,19 +78,15 @@
       <a-camera gps-camera rotation-reader></a-camera>
     </a-scene>
 
-    <!-- JS to update GPS location dynamically -->
+    <!-- JS to display device's GPS in UI only (no dynamic entity movement) -->
     <script>
       const latSpan = document.getElementById("lat");
       const lonSpan = document.getElementById("lon");
-      const welcomeText = document.getElementById("welcomeText");
       const statusBox = document.getElementById("statusBox");
 
-      function updateLocation(lat, lon) {
+      function updateLocationUI(lat, lon) {
         latSpan.innerText = lat.toFixed(6);
         lonSpan.innerText = lon.toFixed(6);
-        if (welcomeText) {
-          welcomeText.setAttribute("gps-entity-place", `latitude: ${lat}; longitude: ${lon};`);
-        }
       }
 
       function handleError(err) {
@@ -102,17 +98,24 @@
       }
 
       if ("geolocation" in navigator) {
-        // Use watchPosition (better on iOS)
-        navigator.geolocation.watchPosition(
+        navigator.geolocation.getCurrentPosition(
           (pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            updateLocation(lat, lon);
-            statusBox.style.display = "none"; // Hide status if successful
+            updateLocationUI(pos.coords.latitude, pos.coords.longitude);
           },
           handleError,
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          { enableHighAccuracy: true }
         );
+
+        // Optional: keep updating coordinates in the info box
+        setInterval(() => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              updateLocationUI(pos.coords.latitude, pos.coords.longitude);
+            },
+            handleError,
+            { enableHighAccuracy: true }
+          );
+        }, 3000);
       } else {
         handleError({ message: "Geolocation not supported" });
       }

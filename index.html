@@ -51,6 +51,7 @@
   <body>
     <!-- UI Box to show current location -->
     <div id="infoBox">
+    <div id="location-info">📍 Getting location...</div>  
       📍 Your Location:<br />
       Lat: <span id="lat">Loading...</span><br />
       Lon: <span id="lon">Loading...</span>
@@ -67,7 +68,7 @@
     >
       <!-- AR Text Object at fixed coordinates -->
       <a-entity 
-        id="welcomeText"
+        id="welcome-text"
         gps-entity-place="latitude: 18.59523; longitude: 73.72612;"
         text="value: Welcome!; color: red; align: center"
         scale="20 20 20"

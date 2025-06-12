@@ -168,13 +168,19 @@
             <p class="text-lg mb-6">Get ready to see a dinosaur in your world!</p>
             <ul class="instructions-list text-left text-base leading-relaxed">
                 <li>
-                    <p class="mb-0"><strong>Print the Marker:</strong> Search for "AR.js Hiro marker" online, print the image, and place it on a flat surface.</p>
+                    <p class="mb-0"><strong>Generate Custom Marker:</strong> The marker image you referenced (`ar-welcome/pattern-marker.png`) needs to be converted into a `.patt` file.</p>
+                </li>
+                <li>
+                    <p class="mb-0"><strong>Convert & Host:</strong> Search for "AR.js marker generator" online, upload your image (`https://raw.githubusercontent.com/sujxxll/ar-welcome/main/ar-welcome/pattern-marker.png`), download the `.patt` file, and then host it somewhere publicly accessible online (e.g., GitHub Pages).</p>
+                </li>
+                <li>
+                    <p class="mb-0"><strong>Update Code:</strong> Replace the placeholder URL in the `<a-marker>` tag in this code with the actual URL to your hosted `.patt` file.</p>
                 </li>
                 <li>
                     <p class="mb-0"><strong>Allow Camera Access:</strong> Your browser will ask for camera permission. Please allow it.</p>
                 </li>
                 <li>
-                    <p class="mb-0"><strong>Point Camera:</strong> Point your device's camera at the printed marker.</p>
+                    <p class="mb-0"><strong>Point Camera:</strong> Point your device's camera at your printed custom marker.</p>
                 </li>
                 <li>
                     <p class="mb-0"><strong>Watch the Magic:</strong> A dinosaur model will appear on the marker!</p>
@@ -193,8 +199,10 @@
         renderer="logarithmicDepthBuffer: true;">
 
         <!-- AR Marker: This defines the marker that AR.js will look for. -->
-        <!-- 'pattern/hiro' refers to the default Hiro marker pattern file. -->
-        <a-marker preset="hiro">
+        <!-- IMPORTANT: AR.js requires a .patt file, not a .png image directly. -->
+        <!-- Use an online AR.js marker generator to convert your image (ar-welcome/pattern-marker.png) -->
+        <!-- into a .patt file. Then, host that .patt file online and provide its URL below. -->
+        <a-marker type="pattern" url="YOUR_HOSTED_PATTERN_MARKER_URL_GOES_HERE.patt">
             <!-- This is where your 3D dinosaur model will go. -->
             <!-- Initially, it's a simple box. -->
             <a-box

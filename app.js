@@ -1,18 +1,15 @@
-<script>
-  // This script is optional if you don't need dynamic interactions.
-  // AR.js handles marker detection and model rendering automatically.
+// Wait for A-Frame to load
+window.addEventListener('load', () => {
+  const marker = document.querySelector('a-marker');
+  const dino = marker.querySelector('a-gltf-model');
 
-  document.addEventListener("DOMContentLoaded", () => {
-    console.log("AR scene ready. Point camera at the QR marker to view the dinosaur.");
+  marker.addEventListener('markerFound', () => {
+    console.log('🔍 Marker found!');
+    dino.setAttribute('visible', true);
   });
 
-  // Optional: Add visibility feedback when marker is detected
-  const sceneEl = document.querySelector("a-scene");
-  sceneEl.addEventListener("markerFound", (e) => {
-    console.log("✅ Marker found:", e.target);
+  marker.addEventListener('markerLost', () => {
+    console.log('❌ Marker lost!');
+    dino.setAttribute('visible', false);
   });
-
-  sceneEl.addEventListener("markerLost", (e) => {
-    console.log("❌ Marker lost:", e.target);
-  });
-</script>
+});

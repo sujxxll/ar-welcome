@@ -1,37 +1,60 @@
 <script>
   const locInfo = document.getElementById("location-info");
+  const welcomeText = document.getElementById("welcome-text");
 
-  function updateLocationUI(lat, lon) {
-    locInfo.innerText = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
+  // Target location for AR entity
+  const targetLat = 18.5344;
+  const targetLon = 73.883;
+
+  function updateLocationUI(lat, lon, distance = null) {
+    let msg = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
+    if (distance !== null) {
+      msg += `\n📏 Distance to AR: ${distance.toFixed(1)} m`;
+    }
+    if (locInfo) locInfo.innerText = msg;
+  }
+
+  // Haversine formula to calculate distance in meters
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) ** 2 +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // in meters
   }
 
   function handlePosition(pos) {
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
 
-    // Only update the UI, not the AR text entity
-    updateLocationUI(lat, lon);
+    const distance = calculateDistance(lat, lon, targetLat, targetLon);
+
+    // Optionally update AR entity to user's position (for testing only)
+    // if (welcomeText) {
+    //   welcomeText.setAttribute("gps-entity-place", `latitude: ${lat}; longitude: ${lon};`);
+    // }
+
+    updateLocationUI(lat, lon, distance);
   }
 
   function handleError(error) {
     console.warn("Geolocation error:", error.message);
-    switch (error.code) {
-      case error.PERMISSION_DENIED:
-        locInfo.innerText = "❌ Location access denied. Please allow GPS.";
-        break;
-      case error.POSITION_UNAVAILABLE:
-        locInfo.innerText = "📡 Location unavailable.";
-        break;
-      case error.TIMEOUT:
-        locInfo.innerText = "⌛ Location request timed out.";
-        break;
-      default:
-        locInfo.innerText = "⚠️ Unable to access GPS location.";
-        break;
-    }
+    const msg = {
+      1: "❌ Location access denied. Please allow GPS.",
+      2: "📡 Location unavailable.",
+      3: "⌛ Location request timed out."
+    }[error.code] || "⚠️ Unable to access GPS location.";
+
+    if (locInfo) locInfo.innerText = msg;
   }
 
-  // Start watching the position for UI updates only
   if ("geolocation" in navigator) {
     navigator.geolocation.watchPosition(handlePosition, handleError, {
       enableHighAccuracy: true,
@@ -39,6 +62,6 @@
       maximumAge: 0
     });
   } else {
-    locInfo.innerText = "❌ Geolocation not supported.";
+    if (locInfo) locInfo.innerText = "❌ Geolocation not supported.";
   }
 </script>

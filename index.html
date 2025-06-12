@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Surface AR Dino</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Wall-Based AR Dino</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.4.2/aframe/build/aframe-ar.js"></script>
     <style>
-      #location-info {
+      #info {
         position: absolute;
         top: 10px;
         left: 10px;
-        background: rgba(0,0,0,0.6);
         color: white;
+        background: rgba(0, 0, 0, 0.6);
         padding: 10px;
         font-size: 14px;
         border-radius: 6px;
@@ -19,35 +19,90 @@
       }
     </style>
   </head>
-
   <body>
-    <div id="location-info">📱 Point your camera at a surface and tap to place the dinosaur.</div>
+    <div id="info">📍 Move to the location and point your device at a wall to place the dinosaur.</div>
 
     <a-scene
       webxr="optionalFeatures: hit-test; requiredFeatures: hit-test;"
-      embedded
-      ar-hit-test="target: #dino"
+      ar-hit-test
       xr-mode-ui="enabled: false"
+      embedded
     >
+      <a-camera gps-camera rotation-reader></a-camera>
+
       <a-gltf-model
         id="dino"
         src="https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Trex/glTF-Binary/Trex.glb"
-        scale="0.02 0.02 0.02"
+        scale="0.05 0.05 0.05"
         rotation="0 180 0"
         visible="false"
         animation-mixer
       ></a-gltf-model>
-
-      <a-camera></a-camera>
     </a-scene>
 
     <script>
       const dino = document.getElementById("dino");
-      const locInfo = document.getElementById("location-info");
+      const infoBox = document.getElementById("info");
 
-      dino.addEventListener("ar-hit-test-select", () => {
-        dino.setAttribute("visible", "true");
-        locInfo.innerText = "🦖 Dinosaur placed!";
+      const targetLat = 18.595234;
+      const targetLon = 73.726098;
+      const visibilityThreshold = 15;
+
+      function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3;
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+        const a =
+          Math.sin(Δφ / 2) ** 2 +
+          Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      }
+
+      let isInLocation = false;
+
+      navigator.geolocation.watchPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          const distance = calculateDistance(lat, lon, targetLat, targetLon);
+
+          if (distance <= visibilityThreshold) {
+            isInLocation = true;
+            infoBox.innerText = "✅ You’re at the location. Now scan a wall.";
+          } else {
+            isInLocation = false;
+            dino.setAttribute("visible", "false");
+            infoBox.innerText =
+              "🚶 Move closer to the target location.\nDistance: " +
+              distance.toFixed(1) +
+              "m";
+          }
+        },
+        (err) => {
+          infoBox.innerText = "⚠️ GPS error: " + err.message;
+        },
+        { enableHighAccuracy: true }
+      );
+
+      // Listen for placement
+      dino.addEventListener("ar-hit-test-select", (e) => {
+        if (!isInLocation) {
+          infoBox.innerText = "❌ Not in target location.";
+          return;
+        }
+
+        // Check if surface is close to vertical (wall)
+        const normal = e.detail?.hitNormal;
+        if (normal && Math.abs(normal.y) < 0.5) {
+          dino.setAttribute("visible", "true");
+          infoBox.innerText = "🦖 Dinosaur placed on wall!";
+        } else {
+          infoBox.innerText = "📵 Please point at a wall.";
+        }
       });
     </script>
   </body>

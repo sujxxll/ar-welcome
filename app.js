@@ -47,13 +47,14 @@
   function handleError(error) {
     console.warn("Geolocation error:", error.message);
     const msg = {
-      1: "❌ Location access denied. Please allow GPS.",
+      1: "📵 Location access denied.\nPlease enable location in browser settings.",
       2: "📡 Location unavailable.",
       3: "⌛ Location request timed out."
     }[error.code] || "⚠️ Unable to access GPS location.";
 
     if (locInfo) locInfo.innerText = msg;
   }
+
 
   if ("geolocation" in navigator) {
     navigator.geolocation.watchPosition(handlePosition, handleError, {

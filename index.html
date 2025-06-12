@@ -1,52 +1,57 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Wall-Based AR Dino</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Dino at Specific Location</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.4.2/aframe/build/aframe-ar.js"></script>
+    <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.4.2/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+
     <style>
-      #info {
+      #location-info {
         position: absolute;
         top: 10px;
         left: 10px;
-        color: white;
-        background: rgba(0, 0, 0, 0.6);
         padding: 10px;
-        font-size: 14px;
-        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
         z-index: 999;
+        font-size: 14px;
+        max-width: 80%;
+        border-radius: 6px;
       }
     </style>
   </head>
   <body>
-    <div id="info">📍 Move to the location and point your device at a wall to place the dinosaur.</div>
+    <div id="location-info">📍 Checking location...</div>
 
     <a-scene
-      webxr="optionalFeatures: hit-test; requiredFeatures: hit-test;"
-      ar-hit-test
-      xr-mode-ui="enabled: false"
+      vr-mode-ui="enabled: false"
       embedded
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+      renderer="logarithmicDepthBuffer: true;"
     >
-      <a-camera gps-camera rotation-reader></a-camera>
-
+      <!-- Dinosaur -->
       <a-gltf-model
         id="dino"
         src="https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Trex/glTF-Binary/Trex.glb"
         scale="0.05 0.05 0.05"
         rotation="0 180 0"
         visible="false"
-        animation-mixer
-      ></a-gltf-model>
+        position="0 0 0">
+      </a-gltf-model>
+
+      <!-- Camera -->
+      <a-camera gps-camera rotation-reader ar-hit-test="target: #dino;"></a-camera>
     </a-scene>
 
     <script>
-      const dino = document.getElementById("dino");
-      const infoBox = document.getElementById("info");
-
       const targetLat = 18.595234;
       const targetLon = 73.726098;
-      const visibilityThreshold = 15;
+      const visibilityThreshold = 15; // meters
+      const locInfo = document.getElementById("location-info");
+      const dino = document.getElementById("dino");
+      let canPlace = false;
 
       function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371e3;
@@ -55,53 +60,42 @@
         const Δφ = (lat2 - lat1) * Math.PI / 180;
         const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-        const a =
-          Math.sin(Δφ / 2) ** 2 +
-          Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+        const a = Math.sin(Δφ / 2) ** 2 +
+                  Math.cos(φ1) * Math.cos(φ2) *
+                  Math.sin(Δλ / 2) ** 2;
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
       }
 
-      let isInLocation = false;
+      // Track location
+      navigator.geolocation.watchPosition((pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const dist = calculateDistance(lat, lon, targetLat, targetLon);
 
-      navigator.geolocation.watchPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-          const distance = calculateDistance(lat, lon, targetLat, targetLon);
-
-          if (distance <= visibilityThreshold) {
-            isInLocation = true;
-            infoBox.innerText = "✅ You’re at the location. Now scan a wall.";
-          } else {
-            isInLocation = false;
-            dino.setAttribute("visible", "false");
-            infoBox.innerText =
-              "🚶 Move closer to the target location.\nDistance: " +
-              distance.toFixed(1) +
-              "m";
-          }
-        },
-        (err) => {
-          infoBox.innerText = "⚠️ GPS error: " + err.message;
-        },
-        { enableHighAccuracy: true }
-      );
-
-      // Listen for placement
-      dino.addEventListener("ar-hit-test-select", (e) => {
-        if (!isInLocation) {
-          infoBox.innerText = "❌ Not in target location.";
-          return;
-        }
-
-        // Check if surface is close to vertical (wall)
-        const normal = e.detail?.hitNormal;
-        if (normal && Math.abs(normal.y) < 0.5) {
-          dino.setAttribute("visible", "true");
-          infoBox.innerText = "🦖 Dinosaur placed on wall!";
+        if (dist <= visibilityThreshold) {
+          locInfo.innerText = "✅ You're in the target area. Tap a surface to place the dinosaur.";
+          canPlace = true;
         } else {
-          infoBox.innerText = "📵 Please point at a wall.";
+          locInfo.innerText = `🚫 Move closer to target location.\n📏 ${dist.toFixed(1)}m away.`;
+          canPlace = false;
+        }
+      }, (err) => {
+        locInfo.innerText = "⚠️ GPS error: " + err.message;
+      }, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      });
+
+      // When user taps on surface (hit test)
+      dino.addEventListener("ar-hit-test-select", () => {
+        if (canPlace) {
+          dino.setAttribute("visible", "true");
+          locInfo.innerText = "🦖 Dinosaur placed!";
+        } else {
+          dino.setAttribute("visible", "false");
+          locInfo.innerText = "🚫 You’re not in the correct location.";
         }
       });
     </script>

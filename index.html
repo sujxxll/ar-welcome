@@ -1,48 +1,35 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-    <title>Surface AR Dinosaur</title>
+    <title>Surface AR Dino</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    
-    <!-- A-Frame + Extras for WebXR -->
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-ar-hit-test@1.0.0/dist/aframe-ar-hit-test.min.js"></script>
-
+    <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.4.2/aframe/build/aframe-ar.js"></script>
     <style>
-      body, html {
-        margin: 0;
-        overflow: hidden;
-        font-family: sans-serif;
-      }
-
-      #overlay {
+      #location-info {
         position: absolute;
         top: 10px;
         left: 10px;
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(0,0,0,0.6);
         color: white;
-        padding: 10px 15px;
-        font-size: 16px;
-        border-radius: 8px;
+        padding: 10px;
+        font-size: 14px;
+        border-radius: 6px;
         z-index: 999;
       }
     </style>
   </head>
 
   <body>
-    <div id="overlay">📱 Point at a flat surface and tap to place the dinosaur 🦖</div>
+    <div id="location-info">📱 Point your camera at a surface and tap to place the dinosaur.</div>
 
     <a-scene
-      embedded
-      renderer="antialias: true; alpha: true"
       webxr="optionalFeatures: hit-test; requiredFeatures: hit-test;"
+      embedded
+      ar-hit-test="target: #dino"
       xr-mode-ui="enabled: false"
-      ar-hit-test="target: #dino; type: placement"
     >
-      <!-- AR Dinosaur -->
-      <a-gltf-model 
+      <a-gltf-model
         id="dino"
         src="https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Trex/glTF-Binary/Trex.glb"
         scale="0.02 0.02 0.02"
@@ -51,8 +38,17 @@
         animation-mixer
       ></a-gltf-model>
 
-      <!-- AR Camera -->
-      <a-camera position="0 0 0" look-controls></a-camera>
+      <a-camera></a-camera>
     </a-scene>
+
+    <script>
+      const dino = document.getElementById("dino");
+      const locInfo = document.getElementById("location-info");
+
+      dino.addEventListener("ar-hit-test-select", () => {
+        dino.setAttribute("visible", "true");
+        locInfo.innerText = "🦖 Dinosaur placed!";
+      });
+    </script>
   </body>
 </html>

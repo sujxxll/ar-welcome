@@ -1,31 +1,222 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Dino AR</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    
-    <!-- A-Frame + AR.js -->
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://cdn.rawgit.com/AR-js-org/AR.js/3.3.2/aframe/build/aframe-ar.min.js"></script>
-  </head>
-  <body style="margin: 0; overflow: hidden;">
-    <a-scene
-      embedded
-      arjs="sourceType: webcam; debugUIEnabled: false;"
-    >
-      <!-- Custom Marker -->
-      <a-marker
-        type="pattern"
-        url="https://raw.githubusercontent.com/sujxxll/ar-welcome/main/marker.patt"
-      >
-        <a-entity
-          gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Velociraptor/glTF/Velociraptor.gltf"
-          scale="0.5 0.5 0.5"
-          rotation="0 180 0"
-        ></a-entity>
-      </a-marker>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dinosaur AR Experience</title>
+    <!-- Tailwind CSS for basic styling (optional, but good for buttons/messages) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the AR experience */
+        body {
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
 
-      <a-entity camera></a-entity>
+        /* The AR scene will take up the full available space */
+        a-scene {
+            width: 100vw;
+            height: 100vh;
+            position: absolute; /* Position scene to cover the entire viewport */
+            top: 0;
+            left: 0;
+            z-index: 1; /* Ensure AR scene is behind overlay elements if any */
+        }
+
+        /* Overlay for instructions and messages */
+        .overlay-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100; /* Ensure overlay is on top */
+            text-align: center;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .message-box {
+            background-color: #2d3748;
+            padding: 2.5rem; /* Increased padding */
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+            max-width: 90%;
+            width: 500px;
+            animation: fadeIn 1s ease-out;
+            border: 2px solid #4a5568;
+        }
+
+        .instructions-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0 0;
+            text-align: left;
+        }
+
+        .instructions-list li {
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .instructions-list li::before {
+            content: '👉'; /* Unicode right pointer */
+            margin-right: 10px;
+            font-size: 1.2em;
+            line-height: 1;
+            padding-top: 2px;
+        }
+
+        .start-button {
+            background-color: #63b3ed; /* Blue-500 */
+            color: #ffffff;
+            font-weight: bold;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem; /* Rounded button */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .start-button:hover {
+            background-color: #4299e1; /* Blue-600 */
+            transform: translateY(-2px);
+        }
+
+        .start-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Media queries for responsiveness */
+        @media (max-width: 768px) {
+            .message-box {
+                padding: 1.5rem;
+                border-radius: 0.75rem;
+            }
+            .instructions-list {
+                font-size: 0.9em;
+            }
+            .start-button {
+                padding: 0.6rem 1.5rem;
+            }
+        }
+    </style>
+
+    <!-- A-Frame and AR.js Libraries -->
+    <!-- A-Frame: The WebVR framework for building 3D/AR experiences -->
+    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1.5.0/dist/aframe-master.min.js"></script>
+    <!-- AR.js: Adds marker-based AR capabilities to A-Frame -->
+    <script src="https://raw.githack.com/AR-js-tools/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+    <script>
+        // JavaScript to manage the overlay message and start AR
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('ar-overlay');
+            const startButton = document.getElementById('start-ar-button');
+
+            // Hide the overlay and start AR when the button is clicked
+            startButton.addEventListener('click', () => {
+                overlay.style.display = 'none';
+                // AR.js will automatically try to start the camera
+                // and detect markers once the scene is visible.
+            });
+        });
+
+        // Event listener for when AR.js initialization is complete and camera access is granted.
+        // This is useful for debugging or adding elements that depend on AR.js being ready.
+        window.addEventListener('arjs-original-camera-init', function () {
+            console.log("AR.js camera initialized!");
+            // You could add logic here to hide the overlay automatically if AR.js starts
+            // without user interaction, but a button is better for explicit permission.
+        });
+
+        // Handle potential errors (e.g., camera not found, permissions denied)
+        window.addEventListener('error', function(e) {
+            console.error("An error occurred:", e);
+            // In a real application, you'd show a user-friendly error message here
+            // in the overlay.
+        });
+    </script>
+</head>
+<body>
+    <!-- The AR overlay for instructions and start button -->
+    <div id="ar-overlay" class="overlay-container">
+        <div class="message-box">
+            <h1 class="text-3xl md:text-4xl font-extrabold mb-4 text-blue-300">Dinosaur AR Experience</h1>
+            <p class="text-lg mb-6">Get ready to see a dinosaur in your world!</p>
+            <ul class="instructions-list text-left text-base leading-relaxed">
+                <li>
+                    <p class="mb-0"><strong>Print the Marker:</strong> Search for "AR.js Hiro marker" online, print the image, and place it on a flat surface.</p>
+                </li>
+                <li>
+                    <p class="mb-0"><strong>Allow Camera Access:</strong> Your browser will ask for camera permission. Please allow it.</p>
+                </li>
+                <li>
+                    <p class="mb-0"><strong>Point Camera:</strong> Point your device's camera at the printed marker.</p>
+                </li>
+                <li>
+                    <p class="mb-0"><strong>Watch the Magic:</strong> A dinosaur model will appear on the marker!</p>
+                </li>
+            </ul>
+            <button id="start-ar-button" class="start-button mt-8">Start AR</button>
+        </div>
+    </div>
+
+    <!-- A-Frame Scene -->
+    <!-- The ar-scene component from AR.js configures the camera and marker tracking -->
+    <a-scene
+        embedded
+        arjs='sourceType: webcam; detectionMode: mono; cameraParametersUrl: https://raw.githack.com/AR-js-tools/AR.js/master/aframe/build/camera-parameters/camera_para.dat;'
+        vr-mode-ui="enabled: false"
+        renderer="logarithmicDepthBuffer: true;">
+
+        <!-- AR Marker: This defines the marker that AR.js will look for. -->
+        <!-- 'pattern/hiro' refers to the default Hiro marker pattern file. -->
+        <a-marker preset="hiro">
+            <!-- This is where your 3D dinosaur model will go. -->
+            <!-- Initially, it's a simple box. -->
+            <a-box
+                position="0 0.5 0"
+                scale="0.5 0.5 0.5"
+                material="color: #FF00FF; opacity: 0.8;"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing: linear;">
+            </a-box>
+            <!-- You can replace the a-box with a GLTF model like this: -->
+            <!--
+            <a-entity
+                gltf-model="url(path/to/your/dinosaur.gltf)"
+                scale="0.01 0.01 0.01"  Adjust scale as needed for your model
+                position="0 0 0"       Position relative to the marker
+                rotation="-90 0 0">    Often GLTF models need rotation to be upright
+            </a-entity>
+            -->
+        </a-marker>
+
+        <!-- A-Frame Camera: This is the camera that renders your scene. -->
+        <!-- It's automatically controlled by AR.js for augmented reality. -->
+        <a-entity camera></a-entity>
     </a-scene>
-  </body>
+</body>
 </html>

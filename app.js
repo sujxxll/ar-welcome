@@ -1,37 +1,49 @@
-const locInfo = document.getElementById("location-info");
-const welcomeText = document.getElementById("welcome-text");
+<script>
+  const locInfo = document.getElementById("location-info");
+  const welcomeText = document.getElementById("welcome-text");
 
-// Function to update location text in the UI
-function updateLocationUI(lat, lon) {
-  locInfo.innerText = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
-}
+  function updateLocationUI(lat, lon) {
+    locInfo.innerText = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
+  }
 
-// Get current position once on page load
-navigator.geolocation.getCurrentPosition(
-  (position) => {
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
+  function handlePosition(pos) {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
 
-    // Set the AR entity's GPS position
-    welcomeText.setAttribute("gps-entity-place", `latitude: ${lat}; longitude: ${lon};`);
+    // Update AR object position
+    if (welcomeText) {
+      welcomeText.setAttribute("gps-entity-place", `latitude: ${lat}; longitude: ${lon};`);
+    }
 
-
-    // Show the coordinates on the screen
     updateLocationUI(lat, lon);
-  },
-  (error) => {
-    locInfo.innerText = "⚠️ Unable to access GPS location.";
-  },
-  {
-    enableHighAccuracy: true
   }
-);
 
-// Update coordinates every second for real-time feedback
-setInterval(() => {
-  if ("geolocation" in navigator) {
-    navigator.geolocation.getCurrentPosition((pos) => {
-      updateLocationUI(pos.coords.latitude, pos.coords.longitude);
-    });
+  function handleError(error) {
+    console.warn("Geolocation error:", error.message);
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        locInfo.innerText = "❌ Location access denied. Please allow GPS.";
+        break;
+      case error.POSITION_UNAVAILABLE:
+        locInfo.innerText = "📡 Location unavailable.";
+        break;
+      case error.TIMEOUT:
+        locInfo.innerText = "⌛ Location request timed out.";
+        break;
+      default:
+        locInfo.innerText = "⚠️ Unable to access GPS location.";
+        break;
+    }
   }
-}, 1000);
+
+  // Start watching the position for real-time updates
+  if ("geolocation" in navigator) {
+    navigator.geolocation.watchPosition(handlePosition, handleError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    });
+  } else {
+    locInfo.innerText = "❌ Geolocation not supported.";
+  }
+</script>

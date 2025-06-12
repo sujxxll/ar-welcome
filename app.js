@@ -1,6 +1,6 @@
 <script>
   const locInfo = document.getElementById("location-info");
-  const welcomeText = document.getElementById("welcome-text");
+  const dinoModel = document.getElementById("dino");
 
   // Target location for AR entity
   const targetLat = 18.5344;
@@ -10,14 +10,14 @@
   function updateLocationUI(lat, lon, distance = null) {
     let msg = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
     if (distance !== null) {
-      msg += `\n📏 Distance to AR: ${distance.toFixed(1)} m`;
+      msg += `\n📏 Distance to Dino: ${distance.toFixed(1)} m`;
     }
     if (locInfo) locInfo.innerText = msg;
   }
 
   // Haversine formula to calculate distance in meters
   function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Earth radius in meters
+    const R = 6371e3;
     const φ1 = lat1 * Math.PI / 180;
     const φ2 = lat2 * Math.PI / 180;
     const Δφ = (lat2 - lat1) * Math.PI / 180;
@@ -28,7 +28,7 @@
               Math.sin(Δλ / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * c; // in meters
+    return R * c;
   }
 
   function handlePosition(pos) {
@@ -36,13 +36,9 @@
     const lon = pos.coords.longitude;
     const distance = calculateDistance(lat, lon, targetLat, targetLon);
 
-    // Show/hide AR entity based on proximity
-    if (welcomeText) {
-      if (distance <= visibilityThreshold) {
-        welcomeText.setAttribute("visible", "true");
-      } else {
-        welcomeText.setAttribute("visible", "false");
-      }
+    // Show/hide the dinosaur model based on proximity
+    if (dinoModel) {
+      dinoModel.setAttribute("visible", distance <= visibilityThreshold);
     }
 
     updateLocationUI(lat, lon, distance);
@@ -59,12 +55,12 @@
     if (locInfo) locInfo.innerText = msg;
   }
 
-  // Hide the AR entity initially
-  if (welcomeText) {
-    welcomeText.setAttribute("visible", "false");
+  // Hide the dinosaur initially
+  if (dinoModel) {
+    dinoModel.setAttribute("visible", "false");
   }
 
-  // Start tracking user's location
+  // Start location tracking
   if ("geolocation" in navigator) {
     navigator.geolocation.watchPosition(handlePosition, handleError, {
       enableHighAccuracy: true,

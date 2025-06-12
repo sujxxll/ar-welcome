@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8" />
+    <title>Surface AR Dinosaur</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>AR Dinosaur with Location</title>
-
-    <!-- A-Frame and AR.js -->
+    
+    <!-- A-Frame + Extras for WebXR -->
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://rawcdn.githack.com/AR-js-org/AR.js/3.4.2/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-ar-hit-test@1.0.0/dist/aframe-ar-hit-test.min.js"></script>
 
     <style>
       body, html {
@@ -15,137 +17,42 @@
         font-family: sans-serif;
       }
 
-      #infoBox {
+      #overlay {
         position: absolute;
         top: 10px;
         left: 10px;
-        padding: 10px 15px;
         background: rgba(0, 0, 0, 0.6);
-        color: #fff;
+        color: white;
+        padding: 10px 15px;
         font-size: 16px;
         border-radius: 8px;
         z-index: 999;
-        max-width: 90%;
-      }
-
-      #infoBox span {
-        font-weight: bold;
-        color: #00ffff;
-      }
-
-      #statusBox {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        background: rgba(255, 0, 0, 0.7);
-        color: white;
-        padding: 6px 10px;
-        font-size: 14px;
-        border-radius: 6px;
-        z-index: 1000;
-        display: none;
       }
     </style>
   </head>
 
   <body>
-    <!-- UI Box -->
-    <div id="infoBox">
-      <div id="location-info">📍 Getting location...</div>
-      📍 Your Location:<br />
-      Lat: <span id="lat">Loading...</span><br />
-      Lon: <span id="lon">Loading...</span>
-    </div>
+    <div id="overlay">📱 Point at a flat surface and tap to place the dinosaur 🦖</div>
 
-    <!-- Status Box -->
-    <div id="statusBox"></div>
-
-    <!-- A-Frame Scene -->
     <a-scene
-      vr-mode-ui="enabled: false"
       embedded
-      arjs="sourceType: webcam; gpsMinAccuracy: 100; gpsTimeInterval: 1000;"
+      renderer="antialias: true; alpha: true"
+      webxr="optionalFeatures: hit-test; requiredFeatures: hit-test;"
+      xr-mode-ui="enabled: false"
+      ar-hit-test="target: #dino; type: placement"
     >
-      <!-- Dinosaur Model at new coordinates -->
+      <!-- AR Dinosaur -->
       <a-gltf-model 
         id="dino"
         src="https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/Trex/glTF-Binary/Trex.glb"
-        gps-entity-place="latitude: 18.595234; longitude: 73.726098;"
-        scale="5 5 5"
+        scale="0.02 0.02 0.02"
         rotation="0 180 0"
+        visible="false"
         animation-mixer
-        visible="false">
-      </a-gltf-model>
+      ></a-gltf-model>
 
       <!-- AR Camera -->
-      <a-camera gps-camera rotation-reader></a-camera>
+      <a-camera position="0 0 0" look-controls></a-camera>
     </a-scene>
-
-    <!-- JS to handle location + visibility -->
-    <script>
-      const latSpan = document.getElementById("lat");
-      const lonSpan = document.getElementById("lon");
-      const statusBox = document.getElementById("statusBox");
-      const locInfo = document.getElementById("location-info");
-      const dinoModel = document.getElementById("dino");
-
-      // Updated target coordinates
-      const targetLat = 18.595234;
-      const targetLon = 73.726098;
-      const visibilityThreshold = 100; // in meters
-
-      function updateLocationUI(lat, lon, distance = null) {
-        latSpan.innerText = lat.toFixed(6);
-        lonSpan.innerText = lon.toFixed(6);
-        let msg = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
-        if (distance !== null) {
-          msg += `\n📏 Distance to Dino: ${distance.toFixed(1)} m`;
-        }
-        locInfo.innerText = msg;
-      }
-
-      function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371e3;
-        const φ1 = lat1 * Math.PI / 180;
-        const φ2 = lat2 * Math.PI / 180;
-        const Δφ = (lat2 - lat1) * Math.PI / 180;
-        const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-        const a = Math.sin(Δφ / 2) ** 2 +
-                  Math.cos(φ1) * Math.cos(φ2) *
-                  Math.sin(Δλ / 2) ** 2;
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-      }
-
-      function handlePosition(pos) {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        const distance = calculateDistance(lat, lon, targetLat, targetLon);
-        updateLocationUI(lat, lon, distance);
-
-        if (dinoModel) {
-          dinoModel.setAttribute("visible", distance < visibilityThreshold);
-        }
-      }
-
-      function handleError(err) {
-        latSpan.innerText = "Error";
-        lonSpan.innerText = "Error";
-        statusBox.innerText = "GPS Error: " + err.message;
-        statusBox.style.display = "block";
-        console.error("Geolocation error:", err.message);
-      }
-
-      if ("geolocation" in navigator) {
-        navigator.geolocation.watchPosition(handlePosition, handleError, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        });
-      } else {
-        handleError({ message: "Geolocation not supported" });
-      }
-    </script>
   </body>
 </html>
